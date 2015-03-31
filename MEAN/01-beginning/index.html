@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="" ng-app="cashManagerApp">
+<head>
+    <meta charset="UTF-8">
+    <title>CashManager</title>
+	<meta name="Author" content="Rafael Navas"/>
+	<meta name="description" content="Ejemplo de aplicación con Angular.js"/>
+	<meta charset="utf-8"/>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+</head>
+
+<script>
+    function print(str){
+        alert(str);
+    }
+</script>
+<body ng-controller="cashController as cshCtrl">
+    
+    <div class="container">
+        <h2 class="text-center" ng-model="titulo">{{cshCtrl.titulo}}</h2>
+        [esGasto:{{cshCtrl.nuevoMovimiento.esGasto}},
+        esIngreso:{{cshCtrl.nuevoMovimiento.esIngreso}},
+        categoria:{{cshCtrl.nuevoMovimiento.categoria}}
+        importe:{{cshCtrl.nuevoMovimiento.importe}},
+        fecha:{{cshCtrl.nuevoMovimiento.fecha}}]
+        <div class="row-fluid">
+            
+            <div class="col-xs-8 col-sm-4">
+                <h4>Ingresos</h4>
+                <h3>
+                     <span class="label label-success">{{cshCtrl.total.ingresos | number: 2}} €</span> 
+                </h3>
+            </div>
+            
+            <div class="col-xs-8 col-sm-4">
+                <h4>Gastos</h4>
+                <h3>
+                   <span class="label label-danger">{{cshCtrl.total.gastos | number: 2}} €</span> 
+                </h3>
+            </div>
+            
+            <div class="col-xs-8 col-sm-4">
+                <h4>Balance</h4>
+                <h3>
+                    <span class="label" ng-class="{'label-success':cshCtrl.balance()>=0, 
+                                        'label-danger':cshCtrl.balance()<0}">
+                    {{cshCtrl.balance() | number: 2}} €</span> 
+                </h3>
+            </div>
+            
+        </div>
+        <hr>
+        
+        <div class="row-fluid">
+            <div class="col-xs-12">
+               <form class="form-horizontal text-left">
+                   
+                   <div class="row-fluid">
+
+                        <div class="col-xs-8 col-sm-4">
+                           <fieldset>
+                               <div id="legend">
+                                   <legend class="">Introduce tus movimientos</legend>
+                               </div>
+                           </fieldset>
+                           <!--cshCtrl.nuevoMovimiento.esIngreso=1; cshCtrl.nuevoMovimiento.esGasto=0-->
+                            <button type="button" class="btn btn-success" 
+                              ng-click="cshCtrl.setIngreso()"
+                              ng-class="{'btn-lg': cshCtrl.nuevoMovimiento.esIngreso==1, 
+                                         'btn-sm': cshCtrl.nuevoMovimiento.esIngreso==0}">
+                               <span>Ingreso</span>
+                            </button>
+                            
+                            <button type="button" class="btn btn-danger" 
+                               ng-click="cshCtrl.setGasto()"
+                               ng-class="{'btn-lg': cshCtrl.nuevoMovimiento.esGasto==1, 
+                                          'btn-sm': cshCtrl.nuevoMovimiento.esGasto==0}">
+                                <span>Gasto</span>
+                            </button>
+                            <div class="control-group">
+                                <label for="categoria" class="control-label">Categor&iacute;a</label>
+                                <div class="controls">
+                                <!--ng-options="gasto for gasto in cashCtrl.categorias.gastos"-->
+                                <!--ng-options="ingreso for ingreso in cashCtrl.categorias.ingresos"-->
+                                
+                                <!--Make sure you're using == operator instead of 
+                                = on ng-show/hide or you might end up having weird problems-->
+                                <select name="categoria" 
+                                    ng-hide="cshCtrl.nuevoMovimiento.esIngreso"
+                                    ng-model="cshCtrl.nuevoMovimiento.categoria"
+                                    ng-options="categoria for categoria in cshCtrl.categorias.gastos"> 
+                                </select>
+                                
+                                <select name="categoria" 
+                                    ng-show="cshCtrl.nuevoMovimiento.esIngreso"
+                                    ng-model="cshCtrl.nuevoMovimiento.categoria" 
+                                    ng-options="categoria for categoria in cshCtrl.categorias.ingresos"> 
+                                </select>
+    
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xs-8 col-sm-4">
+                            <div class="control-group">
+                                 <label for="cantidad" class="control-label">Importe</label>
+                                 <div class="controls">
+                                     <input type="number" class="input" name="cantidad" 
+                                         placeholder="Indique cantidad" 
+                                         ng-model="cshCtrl.nuevoMovimiento.importe">
+                                 </div>
+
+                            </div>
+                            <div class="control-group">
+                                 <label for="fecha" class="control-label">Fecha</label>
+                                 <div class="controls">
+                                     <input type="date" class="input" name="fecha" 
+                                         placeholder="Fecha" 
+                                         ng-model="cshCtrl.nuevoMovimiento.fecha">
+                                 </div>
+                            </div>
+                        </div>
+                        <div class="col-xs-8 col-sm-4">
+
+                            <button class="btn btn-lg btn-primary" style="margin-top:30px;"
+                                ng-click="cshCtrl.addMovimiento()">
+                                <span>
+                                   <!--Angular expression does not support ternary expression. Use '&&' instead of '?' -->
+                                    Guardar {{cshCtrl.nuevoMovimiento.esIngreso && 'Ingreso' || 'Gasto'}}
+                                </span>
+                            </button>
+                
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="row-fluid">
+            <div class="col-xs-12">
+                <p class="lead text-center">Consulte aquí todos sus movimientos</p>
+                <span class="center">
+                    <input class="input" placeholder="Buscar" name="busqMov" ng-model="busqMov"/>
+                </span>
+            </div>
+        </div>
+        
+        <div class="row-fluid">
+           <div class="col-xs-12">
+                
+                <table class="table" >
+                    <thead>
+                        <th><a href="" ng-click="campo = 'fecha'; sentido = (campo == 'fecha' && !sentido)">Fecha</a></th>
+                        <th>Categoria</th>
+                        <th>Tipo</th>
+                        <th><a href="" ng-click="campo = 'importe'; sentido = (campo == 'importe' && !sentido)">Importe</a></th>
+                    </thead>
+                    <tbody>
+                       <!--{{ orderBy_expression | orderBy : expression : reverse}}-->
+                        <tr ng-repeat="movimiento in cshCtrl.movimientos|filter:busqMov|orderBy:campo" 
+                           ng-hide="cshCtrl.movimientos.length == 0">
+                            <td>{{movimiento.fecha | date}}</td>
+                            <td>{{movimiento.categoria}}</td>
+                            <td>{{movimiento.tipo}}</td>
+                            <td ng-class="{'text-success': movimiento.tipo == 'Ingreso', 
+                                'text-danger': movimiento.tipo == 'Gasto'}">
+                                {{movimiento.importe}} €</td>
+                        </tr>
+                        <tr ng-show="cshCtrl.movimientos.length == 0">
+                            <td class="text-center">No hay movimientos registrados</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+         
+    </div>
+    
+    <!--<script src="js/angular.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>-->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.js"></script>
+    <script src="js/app.js"></script>   
+    <script src="js/cashController.js"></script>   
+        
+</body>
+</html>
